@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 
 class CashRegister:
-  pass
-class CashRegister:
     def __init__(self, discount=0):
         self._discount = 0
-        self.discount = discount  # Uses the setter
+        self.discount = discount
         self.total = 0
         self.items = []
         self.previous_transactions = []
@@ -21,45 +19,41 @@ class CashRegister:
         else:
             print("Not valid discount")
 
-    def add_item(self, item, price, quantity):
+    def add_item(self, item, price, quantity=1):
         self.total += price * quantity
-        self.items.append(item)
+        for _ in range(quantity):
+            self.items.append(item)
 
         transaction = {
             "item": item,
             "price": price,
-            "quantity": quantity
+            "quantity": quantity,
         }
         self.previous_transactions.append(transaction)
 
     def apply_discount(self):
-        if not self.previous_transactions:
+        if self.discount == 0:
             print("There is no discount to apply.")
             return
 
-        last_transaction = self.previous_transactions.pop()
+        self.total = self.total * (100 - self.discount) / 100
 
-        # Remove item from items list
-        if last_transaction["item"] in self.items:
-            self.items.remove(last_transaction["item"])
+        # Normalize to int when there's no fractional cents
+        if isinstance(self.total, float) and self.total.is_integer():
+            self.total = int(self.total)
 
-        # Remove its cost from total
-        self.total -= last_transaction["price"] * last_transaction["quantity"]
-
-        # Apply discount to remaining total
-        self.total -= self.total * (self.discount / 100)
+        print(f"After the discount, the total comes to ${self.total}.")
 
     def void_last_transaction(self):
         if not self.previous_transactions:
             print("No transaction to void.")
             return
 
-        last_transaction = self.previous_transactions.pop()
+        last = self.previous_transactions.pop()
+        amount = last["price"] * last["quantity"]
+        self.total -= amount
 
-        self.total -= (
-            last_transaction["price"] *
-            last_transaction["quantity"]
-        )
-
-        if last_transaction["item"] in self.items:
-            self.items.remove(last_transaction["item"])
+        # remove the item occurrences from items list
+        for _ in range(last["quantity"]):
+            if last["item"] in self.items:
+                self.items.remove(last["item"])
